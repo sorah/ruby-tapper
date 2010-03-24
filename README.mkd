@@ -1,0 +1,27 @@
+# ruby-tapper - Switch rubies easily
+
+## Install
+
+    % git clone git://github.com/sorah/ruby-tapper
+
+Then add /path/to/ruby-tapper/bin to $PATH of your shell.
+
+## Setup
+
+__NOTE:__ `~/rubies` is an example.
+
+    % mkdir ~/rubies
+    % rbt --rubies ~/rubies
+    Add ~/rubies/bin to $PATH of your shell.
+
+### Install ruby
+
+    % ./configure --prefix=$HOME/rubies/191
+    % make
+    % make install
+
+## Usage
+
+    % rbt 191 # ~/rubies/191/bin -> ~/rubies/bin and ~/rubies/gems/191/bin -> ~/rubies/bin
+    % rbt --prefix=passenger_ 191 # ~/rubies/191/bin -> ~/rubies/bin (prefix=passenger_)
+    % rbt --suffix=_passenger 191 # ~/rubies/191/bin -> ~/rubies/bin (suffix=passenger_)
