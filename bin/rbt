@@ -1,0 +1,48 @@
+#!/usr/bin/env ruby
+#-*- coding: utf-8 -*-
+# vim: filetype=ruby
+
+
+o = {}
+o[:rubies] = File.exist?(File.expand_path('~/.ruby-tapper-rubies_dir_config')) ?
+               File.read(File.expand_path('~/.ruby-tapper-rubies_dir_config')).chomp : ''
+o[:suffix] = ""
+o[:prefix] = ""
+
+case ARGV.shift
+when '--rubies'
+  o[:rubies] = ARGV.shift.chomp.gsub(/\/$/,'')
+  open(File.expand_path('~/.ruby-tapper-rubies_dir_config'),'w') do |f|
+    f.puts o[:rubies]
+  end
+  puts "Add #{o[:rubies]}/bin to $PATH of your shell."
+  puts "Set #{o[:rubies]}/gem to $GEM_HOME of your shell."
+when /--suffix=(.+)/
+  o[:suffix] = $1
+when /--prefix=(.+)/
+  o[:prefix] = $1
+end
+
+o[:version]  = ARGV.shift
+o[:ruby]     = o[:rubies] + '/'      + o[:version]
+o[:ruby_bin] = o[:rubies] + '/'      + o[:version] + '/bin'
+o[:gem_home] = o[:rubies] + '/gems/' + o[:version]
+o[:gem_bin]  = o[:rubies] + '/gems/' + o[:version] + '/bin'
+
+##################### Open a ruby tapper #####################
+
+######### Create directory some #########
+
+#### rubies/bin ####
+
+#### rubies/gem ####
+
+######### Create symbolic link #########
+
+#### Ruby ####
+
+#### Gems ####
+
+######### Set gem box #########
+
+
