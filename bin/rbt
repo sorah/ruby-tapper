@@ -2,6 +2,8 @@
 #-*- coding: utf-8 -*-
 # vim: filetype=ruby
 
+require 'fileutils'
+
 
 o = {}
 o[:rubies] = File.exist?(File.expand_path('~/.ruby-tapper-rubies_dir_config')) ?
@@ -17,6 +19,7 @@ when '--rubies'
   end
   puts "Add #{o[:rubies]}/bin to $PATH of your shell."
   puts "Set #{o[:rubies]}/gem to $GEM_HOME of your shell."
+  exit
 when /--suffix=(.+)/
   o[:suffix] = $1
 when /--prefix=(.+)/
@@ -24,10 +27,17 @@ when /--prefix=(.+)/
 end
 
 o[:version]  = ARGV.shift
-o[:ruby]     = o[:rubies] + '/'      + o[:version]
-o[:ruby_bin] = o[:rubies] + '/'      + o[:version] + '/bin'
-o[:gem_home] = o[:rubies] + '/gems/' + o[:version]
-o[:gem_bin]  = o[:rubies] + '/gems/' + o[:version] + '/bin'
+o[:bin]      = o[:rubies]   + '/bin'
+o[:gem]      = o[:rubies]   + '/gem'
+o[:gems]     = o[:rubies]   + '/gems'
+o[:gem_home] = o[:gems]     + '/'     + o[:version]
+o[:gem_bin]  = o[:gem_home] + '/bin'
+o[:ruby]     = o[:rubies]   + '/'     + o[:version]
+o[:ruby_bin] = o[:rubies]   + '/'     + o[:version] + '/bin'
+
+abort "#{o[:ruby]} Not exist!" unless File.exist?(o[:ruby])
+abort "#{o[:ruby_bin]} Not exist!" unless File.exist?(o[:bin])
+
 
 ##################### Open a ruby tapper #####################
 
@@ -35,7 +45,19 @@ o[:gem_bin]  = o[:rubies] + '/gems/' + o[:version] + '/bin'
 
 #### rubies/bin ####
 
-#### rubies/gem ####
+Dir.mkdir(o[:bin]) unless File.exist?(o[:bin])
+
+#### rubies/gems ####
+
+Dir.mkdir(o[:gems]) unless File.exist?(o[:gems])
+
+#### rubies/gems/{ver} ####
+
+Dir.mkdir(o[:gem_home]) unless File.exist?(o[:gem_home])
+
+#### rubies/gems/{ver}/bin ####
+
+Dir.mkdir(o[:gem_bin]) unless File.exist?(o[:gem_bin])
 
 ######### Create symbolic link #########
 
