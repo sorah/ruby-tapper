@@ -16,12 +16,20 @@ __NOTE:__ `~/rubies` is an example.
 
 ### Install ruby
 
+Example:
+
     % ./configure --prefix=$HOME/rubies/191
     % make
     % make install
 
 ## Usage
 
-    % rbt 191 # ~/rubies/191/bin -> ~/rubies/bin and ~/rubies/gems/191/bin -> ~/rubies/bin
-    % rbt --prefix=passenger_ 191 # ~/rubies/191/bin -> ~/rubies/bin (prefix=passenger_)
-    % rbt --suffix=_passenger 191 # ~/rubies/191/bin -> ~/rubies/bin (suffix=passenger_)
+    % rbt 191 # ~/rubies/191/bin -> ~/rubies/bin
+    % rbt 192 # ~/rubies/192/bin -> ~/rubies/bin
+    % gem install foo
+    % ruby -e 'require "foo"'
+    % rbt 191
+    % ruby -e 'require "foo"'
+    -e:1:in `require': no such file to load -- foo (LoadError)
+            from -e:1:in `<main>'
+    % rbt gem install termtter
