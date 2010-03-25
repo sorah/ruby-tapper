@@ -6,27 +6,48 @@ require 'fileutils'
 
 
 o = {}
-o[:rubies] = File.exist?(File.expand_path('~/.ruby-tapper-rubies_dir_config')) ?
-               File.read(File.expand_path('~/.ruby-tapper-rubies_dir_config')).chomp : ''
+o[:rubies] = File.exist?(File.expand_path('~/.ruby-tapper-rubies_dir_config')) ? \
+  File.read(File.expand_path('~/.ruby-tapper-rubies_dir_config')).chomp : ''
 o[:suffix] = ""
 o[:prefix] = ""
 
-case ARGV.shift
+def help
+  puts "Usage: #{$0} (--verbose|--help|--rubies PATH_TO_RUBIES)"
+  unless o[:rubies].empty?
+    puts ""
+    puts "Rubies:"
+    Dir.glob(o[:rubies]+'/'+'*').delete_if{|v| ['gem','gems','bin'].include?(v) }.each do |v|
+      puts "  #{v}"
+    end
+  end
+  exit
+end
+
+o[:verbose] = false
+
+case a = ARGV.shift
+when '--verbose'
+  o[:verbose] = true
 when '--rubies'
   o[:rubies] = ARGV.shift.chomp.gsub(/\/$/,'')
   open(File.expand_path('~/.ruby-tapper-rubies_dir_config'),'w') do |f|
     f.puts o[:rubies]
   end
-  puts "Add #{o[:rubies]}/bin to $PATH of your shell."
+  puts "Add #{o[:rubies]}/bin, #{o[:rubies]}/gem/bin to $PATH of your shell."
   puts "Set #{o[:rubies]}/gem to $GEM_HOME of your shell."
   exit
+when '--help'
+  help
 when /--suffix=(.+)/
   o[:suffix] = $1
 when /--prefix=(.+)/
   o[:prefix] = $1
+else
+  ARGV.unshift a
 end
-
 o[:version]  = ARGV.shift
+help if o[:version].nil?
+
 o[:bin]      = o[:rubies]   + '/bin'
 o[:gem]      = o[:rubies]   + '/gem'
 o[:gems]     = o[:rubies]   + '/gems'
@@ -35,36 +56,68 @@ o[:gem_bin]  = o[:gem_home] + '/bin'
 o[:ruby]     = o[:rubies]   + '/'     + o[:version]
 o[:ruby_bin] = o[:rubies]   + '/'     + o[:version] + '/bin'
 
-abort "#{o[:ruby]} Not exist!" unless File.exist?(o[:ruby])
-abort "#{o[:ruby_bin]} Not exist!" unless File.exist?(o[:bin])
+if o[:verbose]
+  require 'pp'
+  pp o
+end
 
 
-##################### Open a ruby tapper #####################
+def open_tapper(o={})
+  ##################### Open a ruby tapper #####################
 
-######### Create directory some #########
+  ######### Clean up #########
+  if File.exist?(o[:bin])
+    FileUtils.remove_entry_secure(o[:bin])
+    puts "#{o[:bin]} Clean up" if o[:verbose]
+  end
 
-#### rubies/bin ####
+  if File.exist?(o[:gem])
+    FileUtils.remove_entry_secure(o[:gem])
+    puts "#{o[:gem]} Clean up" if o[:verbose]
+  end
+  ######### Create directory some #########
 
-Dir.mkdir(o[:bin]) unless File.exist?(o[:bin])
+  #### rubies/bin ####
 
-#### rubies/gems ####
+  unless File.exist?(o[:bin])
+    Dir.mkdir(o[:bin])
+    puts "#{o[:bin]} create" if o[:verbose]
+  end
 
-Dir.mkdir(o[:gems]) unless File.exist?(o[:gems])
+  #### rubies/gems ####
 
-#### rubies/gems/{ver} ####
+  unless File.exist?(o[:gems])
+    Dir.mkdir(o[:gems])
+    puts "#{o[:gems]} create" if o[:verbose]
+  end
 
-Dir.mkdir(o[:gem_home]) unless File.exist?(o[:gem_home])
+  #### rubies/gems/{ver} ####
 
-#### rubies/gems/{ver}/bin ####
+  unless File.exist?(o[:gem_home])
+    Dir.mkdir(o[:gem_home])
+    puts "#{o[:gem_home]} create" if o[:verbose]
+  end
 
-Dir.mkdir(o[:gem_bin]) unless File.exist?(o[:gem_bin])
+  #### rubies/gems/{ver}/bin ####
 
-######### Create symbolic link #########
+  unless File.exist?(o[:gem_bin])
+    Dir.mkdir(o[:gem_bin])
+    puts "#{o[:gem_bin]} create" if o[:verbose]
+  end
 
-#### Ruby ####
+  ######### Create symbolic link #########
 
-#### Gems ####
+  #### Gem ####
 
-######### Set gem box #########
+  FileUtils.symlink(o[:gem_home],o[:gem])
+  puts "#{o[:gem_home]} -> #{o[:gem_home]}" if o[:verbose]
 
+  #### Bin ####
 
+  Dir.glob(o[:ruby_bin]+'/**/*').each do |f|
+    t = o[:bin]+'/'+File.basename(f)
+    FileUtils.symlink(f,t)
+    puts "#{f} -> #{t}" if o[:verbose]
+  end
+end
+open_tapper(o)
