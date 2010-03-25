@@ -11,56 +11,31 @@ o[:rubies] = File.exist?(File.expand_path('~/.ruby-tapper-rubies_dir_config')) ?
 o[:suffix] = ""
 o[:prefix] = ""
 
-def help
+def help(o={})
   puts "Usage: #{$0} (--verbose|--help|--rubies PATH_TO_RUBIES)"
   unless o[:rubies].empty?
     puts ""
     puts "Rubies:"
-    Dir.glob(o[:rubies]+'/'+'*').delete_if{|v| ['gem','gems','bin'].include?(v) }.each do |v|
+    Dir.glob(o[:rubies]+'/'+'*').map{|v| File.basename(v) } \
+                                .delete_if{|v|
+                                  ['gem','gems','bin'].include?(v)
+                                }.each do |v|
       puts "  #{v}"
     end
   end
   exit
 end
 
-o[:verbose] = false
-
-case a = ARGV.shift
-when '--verbose'
-  o[:verbose] = true
-when '--rubies'
-  o[:rubies] = ARGV.shift.chomp.gsub(/\/$/,'')
-  open(File.expand_path('~/.ruby-tapper-rubies_dir_config'),'w') do |f|
-    f.puts o[:rubies]
-  end
-  puts "Add #{o[:rubies]}/bin, #{o[:rubies]}/gem/bin to $PATH of your shell."
-  puts "Set #{o[:rubies]}/gem to $GEM_HOME of your shell."
-  exit
-when '--help'
-  help
-when /--suffix=(.+)/
-  o[:suffix] = $1
-when /--prefix=(.+)/
-  o[:prefix] = $1
-else
-  ARGV.unshift a
+def set_opts(base={})
+  base[:bin]      = base[:rubies]   + '/bin'
+  base[:gem]      = base[:rubies]   + '/gem'
+  base[:gems]     = base[:rubies]   + '/gems'
+  base[:gem_home] = base[:gems]     + '/'     + base[:version]
+  base[:gem_bin]  = base[:gem_home] + '/bin'
+  base[:ruby]     = base[:rubies]   + '/'     + base[:version]
+  base[:ruby_bin] = base[:rubies]   + '/'     + base[:version] + '/bin'
+  base
 end
-o[:version]  = ARGV.shift
-help if o[:version].nil?
-
-o[:bin]      = o[:rubies]   + '/bin'
-o[:gem]      = o[:rubies]   + '/gem'
-o[:gems]     = o[:rubies]   + '/gems'
-o[:gem_home] = o[:gems]     + '/'     + o[:version]
-o[:gem_bin]  = o[:gem_home] + '/bin'
-o[:ruby]     = o[:rubies]   + '/'     + o[:version]
-o[:ruby_bin] = o[:rubies]   + '/'     + o[:version] + '/bin'
-
-if o[:verbose]
-  require 'pp'
-  pp o
-end
-
 
 def open_tapper(o={})
   ##################### Open a ruby tapper #####################
@@ -120,4 +95,54 @@ def open_tapper(o={})
     puts "#{f} -> #{t}" if o[:verbose]
   end
 end
+
+
+o[:verbose] = false
+
+case a = ARGV.shift
+when '--verbose'
+  o[:verbose] = true
+when '--rubies'
+  o[:rubies] = ARGV.shift.chomp.gsub(/\/$/,'')
+  open(File.expand_path('~/.ruby-tapper-rubies_dir_config'),'w') do |f|
+    f.puts o[:rubies]
+  end
+  puts "Add #{o[:rubies]}/bin, #{o[:rubies]}/gem/bin to $PATH of your shell."
+  puts "Set #{o[:rubies]}/gem to $GEM_HOME of your shell."
+  exit
+when '--help'
+  help(o)
+when /--suffix=(.+)/
+  o[:suffix] = $1
+when /--prefix=(.+)/
+  o[:prefix] = $1
+else
+  ARGV.unshift a
+end
+o[:version]  = ARGV.shift
+case o[:version]
+when nil
+  help(o)
+when 'gem'
+  cmd = ARGV.shift
+  Dir.glob(o[:rubies]+'/'+'*').map{|v| File.basename(v) } \
+                              .delete_if{|v|
+                                ['gem','gems','bin'].include?(v)
+                              }.each do |v|
+    o[:version] = v
+    open_tapper(set_opts(o))
+    system 'ruby', '-v'
+    system 'gem', cmd
+    puts "-"*80
+  end
+  exit
+end
+
+o = set_opts(o)
+
+if o[:verbose]
+  require 'pp'
+  pp o
+end
+
 open_tapper(o)
