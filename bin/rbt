@@ -124,7 +124,7 @@ case o[:version]
 when nil
   help(o)
 when 'gem'
-  cmd = ARGV.shift
+  cmd = ARGV.dup
   Dir.glob(o[:rubies]+'/'+'*').map{|v| File.basename(v) } \
                               .delete_if{|v|
                                 ['gem','gems','bin'].include?(v)
@@ -132,7 +132,7 @@ when 'gem'
     o[:version] = v
     open_tapper(set_opts(o))
     system 'ruby', '-v'
-    system 'gem', cmd
+    system 'gem', *cmd
     puts "-"*80
   end
   exit
