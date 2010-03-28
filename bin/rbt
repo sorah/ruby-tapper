@@ -10,6 +10,7 @@ o[:rubies] = File.exist?(File.expand_path('~/.ruby-tapper-rubies_dir_config')) ?
   File.read(File.expand_path('~/.ruby-tapper-rubies_dir_config')).chomp : ''
 o[:suffix] = ""
 o[:prefix] = ""
+o[:temp]   = true
 
 def help(o={})
   puts "Usage: #{$0} (--verbose|--help|--rubies PATH_TO_RUBIES)"
@@ -38,62 +39,62 @@ def set_opts(base={})
 end
 
 def open_tapper(o={})
-  ##################### Open a ruby tapper #####################
+    ##################### Open a ruby tapper #####################
 
-  ######### Clean up #########
-  if File.exist?(o[:bin])
-    FileUtils.remove_entry_secure(o[:bin])
-    puts "#{o[:bin]} Clean up" if o[:verbose]
-  end
+    ######### Clean up #########
+    if File.exist?(o[:bin])
+      FileUtils.remove_entry_secure(o[:bin])
+      puts "#{o[:bin]} Clean up" if o[:verbose]
+    end
 
-  if File.exist?(o[:gem])
-    FileUtils.remove_entry_secure(o[:gem])
-    puts "#{o[:gem]} Clean up" if o[:verbose]
-  end
-  ######### Create directory some #########
+    if File.exist?(o[:gem])
+      FileUtils.remove_entry_secure(o[:gem])
+      puts "#{o[:gem]} Clean up" if o[:verbose]
+    end
+    ######### Create directory some #########
 
-  #### rubies/bin ####
+    #### rubies/bin ####
 
-  unless File.exist?(o[:bin])
-    Dir.mkdir(o[:bin])
-    puts "#{o[:bin]} create" if o[:verbose]
-  end
+    unless File.exist?(o[:bin])
+      Dir.mkdir(o[:bin])
+      puts "#{o[:bin]} create" if o[:verbose]
+    end
 
-  #### rubies/gems ####
+    #### rubies/gems ####
 
-  unless File.exist?(o[:gems])
-    Dir.mkdir(o[:gems])
-    puts "#{o[:gems]} create" if o[:verbose]
-  end
+    unless File.exist?(o[:gems])
+      Dir.mkdir(o[:gems])
+      puts "#{o[:gems]} create" if o[:verbose]
+    end
 
-  #### rubies/gems/{ver} ####
+    #### rubies/gems/{ver} ####
 
-  unless File.exist?(o[:gem_home])
-    Dir.mkdir(o[:gem_home])
-    puts "#{o[:gem_home]} create" if o[:verbose]
-  end
+    unless File.exist?(o[:gem_home])
+      Dir.mkdir(o[:gem_home])
+      puts "#{o[:gem_home]} create" if o[:verbose]
+    end
 
-  #### rubies/gems/{ver}/bin ####
+    #### rubies/gems/{ver}/bin ####
 
-  unless File.exist?(o[:gem_bin])
-    Dir.mkdir(o[:gem_bin])
-    puts "#{o[:gem_bin]} create" if o[:verbose]
-  end
+    unless File.exist?(o[:gem_bin])
+      Dir.mkdir(o[:gem_bin])
+      puts "#{o[:gem_bin]} create" if o[:verbose]
+    end
 
-  ######### Create symbolic link #########
+    ######### Create symbolic link #########
 
-  #### Gem ####
+    #### Gem ####
 
-  FileUtils.symlink(o[:gem_home],o[:gem])
-  puts "#{o[:gem_home]} -> #{o[:gem_home]}" if o[:verbose]
+    FileUtils.symlink(o[:gem_home],o[:gem])
+    puts "#{o[:gem_home]} -> #{o[:gem_home]}" if o[:verbose]
 
-  #### Bin ####
+    #### Bin ####
 
-  Dir.glob(o[:ruby_bin]+'/**/*').each do |f|
-    t = o[:bin]+'/'+File.basename(f)
-    FileUtils.symlink(f,t)
-    puts "#{f} -> #{t}" if o[:verbose]
-  end
+    Dir.glob(o[:ruby_bin]+'/**/*').each do |f|
+      t = o[:bin]+'/'+File.basename(f)
+      FileUtils.symlink(f,t)
+      puts "#{f} -> #{t}" if o[:verbose]
+    end
 end
 
 
@@ -112,6 +113,8 @@ when '--rubies'
   exit
 when '--help'
   help(o)
+when '--temp', '-t'
+  o[:temp] = true
 when /--suffix=(.+)/
   o[:suffix] = $1
 when /--prefix=(.+)/
